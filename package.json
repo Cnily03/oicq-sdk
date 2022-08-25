@@ -1,0 +1,21 @@
+{
+  "name": "oicq-sdk",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node ./test"
+  },
+  "keywords": [],
+  "author": "Jevon Wang",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "oicq": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.12"
+  }
+}

@@ -1,0 +1,12 @@
+# node modules
+node_modules/
+node_modules/*
+
+# vscode configurations
+.vscode/
+
+# generated files
+lib/
+
+# test files
+test/data/
