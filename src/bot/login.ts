@@ -1,9 +1,8 @@
-import { reading } from "../util";
 import { Bot, Password } from "../bot";
 import * as fs from "fs";
 import * as path from "path";
-import { md5 } from "../components/crypto";
-import { stdout } from "process";
+import { reading } from "../workspace/reading";
+import { md5 } from "../workspace/crypto";
 
 
 let __before_run = false;
