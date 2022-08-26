@@ -1,9 +1,9 @@
-import "./components/colors";
+import "./workspace/colors";
 import * as oicq from "oicq";
-import { md5 } from "./components/crypto";
+import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
 
-export declare type Account = number | string;
+export declare type Account = number | string | Buffer;
 export declare type Password = string | Buffer;
 
 interface BotStatus {
@@ -19,7 +19,43 @@ interface BotStatus {
 export class Bot {
     readonly CLIENT: oicq.Client;
     readonly ACCOUNT: Account;
-    readonly PASSWORD_MD5?: Password;
+    private status: BotStatus;
+    /**
+     * QQ机器人
+     * @param account QQ账号
+     * @param password QQ密码（如果为空则不会自动登录）
+     */
+    constructor(account: Account, password?: Password) {
+        this.status = {
+            client: {
+                exist: false,
+                logged: false
+            }
+        }
+        // Generate CLIENT
+        this.CLIENT = Bot.createClient(account);
+        this.status.client.exist = true;
+        // STORE ACCOUNT
+        this.ACCOUNT = parseInt(account.toString());
+        // define property LOGIN
+        const PASSWORD_MD5 = (function () {
+            if (!password) return undefined;
+            if (Buffer.isBuffer(password)) password = String(password);
+            if (password.length == 32) return password;
+            else return md5(password);
+        })()
+        // login method
+        this.loginByToken = loginByToken.bind(this);
+        this.loginByPassword = loginByPassword.bind(this);
+        this.loginByQRCode = loginByQRCode.bind(this);
+        this.login = login.bind(this);
+        // login by password
+        if (PASSWORD_MD5) {
+            this.loginByPassword(PASSWORD_MD5)
+        }
+        // TODO: reaisterMsg
+    }
+
     /**
      * 使用 Token 登录
      * ```
@@ -53,42 +89,6 @@ export class Bot {
      * @param password 可以为密码原文，或密码的md5值
      */
     readonly login: (this: Bot, password?: Password) => Promise<void>;
-    private status: BotStatus;
-    /**
-     * QQ机器人
-     * @param account QQ账号
-     * @param password QQ密码（如果为空则不会自动登录）
-     */
-    constructor(account: Account, password?: Password) {
-        this.status = {
-            client: {
-                exist: false,
-                logged: false
-            }
-        }
-        // Generate CLIENT
-        this.CLIENT = Bot.createClient(account);
-        this.status.client.exist = true;
-        // STORE ACCOUNT
-        this.ACCOUNT = parseInt(account.toString());
-        // define property LOGIN
-        this.PASSWORD_MD5 = (function () {
-            if (!password) return undefined;
-            if (Buffer.isBuffer(password)) password = String(password);
-            if (password.length == 32) return password;
-            else return md5(password);
-        })()
-        // login method
-        this.loginByToken = loginByToken.bind(this);
-        this.loginByPassword = loginByPassword.bind(this);
-        this.loginByQRCode = loginByQRCode.bind(this);
-        this.login = login.bind(this);
-        // login by password
-        if (this.PASSWORD_MD5) {
-            this.loginByPassword(this.PASSWORD_MD5)
-        }
-        // TODO: reaisterMsg
-    }
 
     /**
      * 创建一个OICQ Client并保存到`CLIENT`属性中
@@ -97,13 +97,16 @@ export class Bot {
      */
     private static createClient(account: Account): oicq.Client {
         const isAccountLegal = function (account: Account): boolean {
-            if (typeof account == "number") return true;
+            if (Buffer.isBuffer(account)) return isAccountLegal(String(account));
+            else if (typeof account == "number") return true;
             else if (typeof account == "string" && parseInt(account).toString() == account) return true;
             else return false;
         }
 
         if (isAccountLegal(account)) {
             console.log("QQ账号：".info + account);
+            if (Buffer.isBuffer(account))
+                account = String(account);
             if (typeof account == "string")
                 account = parseInt(account);
             return oicq.createClient(account);

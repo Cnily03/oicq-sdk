@@ -1,10 +1,10 @@
 const osdk = require("../");
-require("../lib/components/colors");
+require("../lib/workspace/colors");
 // const CONFIG = require("./config");
 // const oicq = require("oicq");
-const reading = osdk.util.reading;
+const reading = require("../lib/workspace/reading")
 
-var OICQ = new osdk.Bot(3136377562);
+var OICQ
 
 // account
 const isAccountLegal = function (account) {
@@ -26,7 +26,7 @@ function getAccount(account) {
         }
     })
 }
-getAccount(CONFIG.oicq.login_info.account).then(account => {
+getAccount(3136377562).then(account => {
     OICQ = new osdk.Bot(account);
 
     // Login
@@ -36,7 +36,7 @@ getAccount(CONFIG.oicq.login_info.account).then(account => {
             if (arg.includes(":") && (loginArg = arg.split(":")).length == 2 && loginArg[0].trim() == "login")
                 return ["password", "qrcode"].includes(loginArg[1].trim().toLowerCase()) ?
                     loginArg[1].trim().toLowerCase() : "qrcode";
-        return "qrcode";
+        return "password";
     })()
     if (loginType == "password") OICQ.loginByPassword();
     else OICQ.loginByQRCode()
@@ -48,5 +48,9 @@ getAccount(CONFIG.oicq.login_info.account).then(account => {
     OICQ.CLIENT.on("message", (event) => {
         event.reply("hello world")
         console.log(event)
+    });
+    OICQ.CLIENT.on("message", (event) => {
+        event.reply("gaga")
+        // console.log(event)
     });
 })

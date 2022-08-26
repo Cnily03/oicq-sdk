@@ -1,10 +1,10 @@
-import "./components/colors";
+import "./colors";
 import * as readline from "readline";
 import { Writable } from "stream"
 /**
  * Reading the console input with more options.
- * @param {String} qurey - the string before the input
- * @param {Boolean} muted - decide where the input should be hidden
+ * @param {String} qurey the string before the input
+ * @param {Boolean} muted decide where the input should be hidden
  * @returns {Promise<Buffer>} reading result Promise
  * @example
  * ```
