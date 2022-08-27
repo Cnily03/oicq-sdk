@@ -46,11 +46,8 @@ getAccount(3136377562).then(account => {
 
     // 监听消息并回复
     OICQ.CLIENT.on("message", (event) => {
-        event.reply("hello world")
         console.log(event)
     });
-    OICQ.CLIENT.on("message", (event) => {
-        event.reply("gaga")
-        // console.log(event)
-    });
+    OICQ.registerMsg(["abc", "def"], "received");
+    OICQ.registerMsg(["test", " response"]);
 })
