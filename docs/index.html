@@ -1,0 +1,64 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>oicq-sdk</title><meta name="description" content="Documentation for oicq-sdk"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script><link rel="stylesheet" href="assets/custom.css"/></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">oicq-sdk</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>oicq-sdk </h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#openicq-sdk" id="openicq-sdk" style="color: inherit; text-decoration: none;">
+  <h1>OpenICQ SDK</h1>
+</a>
+<p><a href="https://www.npmjs.com/package/oicq-sdk"><img src="https://img.shields.io/npm/v/oicq-sdk" alt="NPM Version"></a>
+<a href="https://nodejs.org"><img src="https://img.shields.io/node/v/oicq-sdk" alt="Node Engine Version"></a>
+<a href="https://www.npmjs.com/package/oicq-sdk"><img src="https://shields.io/npm/dt/oicq-sdk" alt="Total Downloads"></a></p>
+<p>提供<code>oicq</code>的QQ机器人工具包</p>
+<p>Developing...</p>
+
+<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+  <h2>Usage</h2>
+</a>
+
+<a href="#创建并登录" id="创建并登录" style="color: inherit; text-decoration: none;">
+  <h3>创建并登录</h3>
+</a>
+<p>创建一个机器人</p>
+<pre><code class="language-javascript"><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">osdk</span><span class="hl-1"> = </span><span class="hl-3">require</span><span class="hl-1">(</span><span class="hl-4">&quot;oicq-sdk&quot;</span><span class="hl-1">)</span><br/><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">Bot</span><span class="hl-1"> = </span><span class="hl-0">new</span><span class="hl-1"> </span><span class="hl-5">osdk</span><span class="hl-1">.</span><span class="hl-3">Bot</span><span class="hl-1">(</span><span class="hl-6">123456789</span><span class="hl-1">) </span><span class="hl-7">// QQ账号</span>
+</code></pre>
+<p>登录</p>
+<pre><code class="language-javascript"><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByPassword</span><span class="hl-1">() </span><span class="hl-7">// 控制台界面输入QQ密码后登录</span><br/><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByPassword</span><span class="hl-1">(</span><span class="hl-4">&quot;password&quot;</span><span class="hl-1">) </span><span class="hl-7">// 使用密码或密码的md5值登录</span><br/><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByQRCode</span><span class="hl-1">() </span><span class="hl-7">// 使用二维码登录</span><br/><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByToken</span><span class="hl-1">() </span><span class="hl-7">// 使用Token登录</span><br/><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">login</span><span class="hl-1">() </span><span class="hl-7">// 自动登录（先尝试Token，如果有密码则使用密码登录，否则使用扫描二维码登录）</span>
+</code></pre>
+<p>也可以直接在创建时登录</p>
+<pre><code class="language-javascript"><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">Bot</span><span class="hl-1"> = </span><span class="hl-0">new</span><span class="hl-1"> </span><span class="hl-5">osdk</span><span class="hl-1">.</span><span class="hl-3">Bot</span><span class="hl-1">(</span><span class="hl-6">123456789</span><span class="hl-1">, </span><span class="hl-4">&quot;password&quot;</span><span class="hl-1">)</span>
+</code></pre>
+<p>一种自定义登录方式排序的方法</p>
+<pre><code class="language-javascript"><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByToken</span><span class="hl-1">().</span><span class="hl-3">catch</span><span class="hl-1">(() </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByPassword</span><span class="hl-1">(</span><span class="hl-5">password</span><span class="hl-1">).</span><span class="hl-3">catch</span><span class="hl-1">(() </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-5">Bot</span><span class="hl-1">.</span><span class="hl-3">loginByQRCode</span><span class="hl-1">().</span><span class="hl-3">catch</span><span class="hl-1">(</span><span class="hl-5">e</span><span class="hl-1"> </span><span class="hl-0">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">            </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-3">log</span><span class="hl-1">(</span><span class="hl-5">e</span><span class="hl-1">)</span><br/><span class="hl-1">        });</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">});</span>
+</code></pre>
+
+<a href="#documents" id="documents" style="color: inherit; text-decoration: none;">
+  <h2>Documents</h2>
+</a>
+
+<a href="#class" id="class" style="color: inherit; text-decoration: none;">
+  <h3>Class</h3>
+</a>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot</code> - 机器人实例</li>
+</ul>
+
+<a href="#properties" id="properties" style="color: inherit; text-decoration: none;">
+  <h3>Properties</h3>
+</a>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.CLIENT</code> - <code>oicq.Client</code> 实例</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.ACCOUNT</code> - 实例登录的QQ账号</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.status</code> - 用于记录一些机器人状态参数</li>
+</ul>
+
+<a href="#method" id="method" style="color: inherit; text-decoration: none;">
+  <h3>Method</h3>
+</a>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.loginByPassword(password?)</code> - 使用密码登录</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.loginByQRCode()</code> - 使用二维码登录</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.loginByToken()</code> - 使用Token登录</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.login(password?)</code> - 自动选择登录方式</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.register(event_name, entry, response)</code> - 注册事件（带入口条件）
+<code>Bot.register(event_name, response)</code> - 注册事件（不带入口条件）</li>
+<li><input checked="" disabled="" type="checkbox"> <code>Bot.registerMsg(entry, response)</code> - 注册消息监听（带入口条件）
+<code>Bot.registerMsg(response)</code> - 注册消息监听（不带入口条件）</li>
+</ul>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/Bot.html" class="tsd-kind-icon">Bot</a></li><li class="tsd-kind-interface"><a href="interfaces/BotStatus.html" class="tsd-kind-icon">Bot<wbr/>Status</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Account" class="tsd-kind-icon">Account</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#EventEntry" class="tsd-kind-icon">Event<wbr/>Entry</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#EventResponse" class="tsd-kind-icon">Event<wbr/>Response</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#MessageEntry" class="tsd-kind-icon">Message<wbr/>Entry</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#MessageResponse" class="tsd-kind-icon">Message<wbr/>Response</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Password" class="tsd-kind-icon">Password</a></li><li class="tsd-kind-function"><a href="modules.html#toMessage" class="tsd-kind-icon">to<wbr/>Message</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script><script src="assets/custom.js"></script></body></html>
