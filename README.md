@@ -1,6 +1,10 @@
 # OpenICQ SDK
 
-提供`iocq`的QQ机器人工具包
+[![NPM Version](https://img.shields.io/npm/v/oicq-sdk)](https://www.npmjs.com/package/oicq-sdk)
+[![Node Engine Version](https://img.shields.io/node/v/oicq-sdk)](https://nodejs.org)
+[![Total Downloads](https://shields.io/npm/dt/oicq-sdk)](https://www.npmjs.com/package/oicq-sdk)
+
+提供`oicq`的QQ机器人工具包
 
 Developing...
 
@@ -11,7 +15,7 @@ Developing...
 创建一个机器人
 
 ```javascript
-const osdk = require("oicq-osdk")
+const osdk = require("oicq-sdk")
 const Bot = new osdk.Bot(123456789) // QQ账号
 ```
 
@@ -34,11 +38,13 @@ const Bot = new osdk.Bot(123456789, "password")
 一种自定义登录方式排序的方法
 
 ```javascript
-Bot.loginByToken().catch(()=>{
-  Bot.loginByPassword(password).catch(()=>{
-    Bot.loginByQRCode().catch((e)=>{console.log(e)});
-  })
-})
+Bot.loginByToken().catch(() => {
+    Bot.loginByPassword(password).catch(() => {
+        Bot.loginByQRCode().catch(e => {
+            console.log(e)
+        });
+    });
+});
 ```
 
 ## Documents
@@ -55,11 +61,11 @@ Bot.loginByToken().catch(()=>{
 
 ### Method
 
-- [x] `Bot.loginByPassword(password?: string | Buffer)` - 使用密码登录
+- [x] `Bot.loginByPassword(password?)` - 使用密码登录
 - [x] `Bot.loginByQRCode()` - 使用二维码登录
 - [x] `Bot.loginByToken()` - 使用Token登录
-- [x] `Bot.login(password?: string | Buffer)` - 自动选择登录方式
-- [x] `Bot.register(event_name: string, entry, response)` - 注册事件（带入口条件）
-      `Bot.register(event_name: string, response)` - 注册事件（不带入口条件）
+- [x] `Bot.login(password?)` - 自动选择登录方式
+- [x] `Bot.register(event_name, entry, response)` - 注册事件（带入口条件）
+      `Bot.register(event_name, response)` - 注册事件（不带入口条件）
 - [x] `Bot.registerMsg(entry, response)` - 注册消息监听（带入口条件）
       `Bot.registerMsg(response)` - 注册消息监听（不带入口条件）
