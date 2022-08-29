@@ -1,5 +1,6 @@
 import * as oicq from "oicq";
 
+// Copied and edited from oicq.segment.fromCqcode
 function unescapeCQ(s: string) {
     if (s === "&#91;") return "[";
     if (s === "&#93;") return "]";
@@ -7,6 +8,7 @@ function unescapeCQ(s: string) {
     return "";
 }
 
+// Copied and edited from oicq.segment.fromCqcode
 function unescapeCQInside(s: string) {
     if (s === "&#44;") return ",";
     if (s === "&#91;") return "[";
@@ -15,13 +17,14 @@ function unescapeCQInside(s: string) {
     return "";
 }
 
+// Copied and edited from oicq.segment.fromCqcode
 function qs(s: string, sep = ",", equal = "=") {
     const ret: any = {}
     const split = s.split(sep)
     for (let v of split) {
         const i = v.indexOf(equal)
         if (i === -1) continue
-        ret[v.substring(0, i)] = v.substr(i + 1).replace(/&#44;|&#91;|&#93;|&amp;/g, unescapeCQInside)
+        ret[v.substring(0, i)] = v.substring(i + 1).replace(/&#44;|&#91;|&#93;|&amp;/g, unescapeCQInside)
     }
     for (let k in ret) {
         try {
@@ -32,6 +35,7 @@ function qs(s: string, sep = ",", equal = "=") {
     return ret as oicq.MessageElem
 }
 
+// Copied and edited from oicq.segment.fromCqcode
 function _cqToMessage(str: string): oicq.MessageElem[] {
     const elems: oicq.MessageElem[] = [];
     const res = str.matchAll(/\[CQ:[^\]]+\]/g);
@@ -54,6 +58,7 @@ function _cqToMessage(str: string): oicq.MessageElem[] {
     return elems;
 }
 
+/** 将可发送的字符串等类别转化为`oicq.MessageElem[]` */
 export function toMessage(content: oicq.Sendable): oicq.MessageElem[] {
     if (!Array.isArray(content)) {
         // string | MessageElem

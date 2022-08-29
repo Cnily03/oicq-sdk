@@ -2,24 +2,24 @@ import "./workspace/colors";
 import * as oicq from "oicq";
 import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
-import { EventEntry, EventResponse } from "./bot/events";
+import { EventEntry, EventResponse, MessageEntry, MessageResponse } from "./bot/events";
 import { toMessage } from "./bot/message";
 
+/** 支持的账号数据类型 */
 export declare type Account = number | string | Buffer;
+/** 支持的密码数据类型 */
 export declare type Password = string | Buffer;
 
-interface BotStatus {
+/** 机器人状态 */
+export interface BotStatus {
     /** Show status to do with the OICQ Client */
     client: {
-        /** if existing the client whose type is oicq.Client */
+        /** if existing the client whose type is `oicq.Client` */
         exist: boolean;
         /** if the OICQ Client has been logged into */
         logged: boolean;
     }
 }
-
-type MessageEntry<T, S extends keyof oicq.EventMap> = EventEntry<T, S> | oicq.Sendable;
-type MessageResponse<T, S extends keyof oicq.EventMap> = EventResponse<T, S> | oicq.Sendable;
 
 // export interface EventPool extends oicq.EventMap {
 //     name: keyof oicq.EventMap,
@@ -35,30 +35,33 @@ export interface Bot {
      */
     register<T extends keyof oicq.EventMap>(event_name: T, entry: EventEntry<Bot, T>, response: EventResponse<Bot, T>): void;
     /**
-     * 注册事件
+     * 注册事件（不带入口条件）
      * @param event_name 事件名称
      * @param response 回应函数
      */
     register<T extends keyof oicq.EventMap>(event_name: T, response: EventResponse<Bot, T>): void;
     /**
-     * 注册消息事件
+     * 注册消息事件（携带入口条件）
      * @param entry 入口，可以是函数或消息实例
      * @param response 回应，可以是函数或消息实例
      */
     registerMsg<T extends keyof oicq.EventMap>(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>): void;
     /**
-     * 注册消息事件
+     * 注册消息事件（不带入口条件）
      * @param response 回应，可以是函数或消息实例
      */
     registerMsg<T extends keyof oicq.EventMap>(response: MessageResponse<Bot, T>): void;
 }
 
 export class Bot {
+    /** `oicq.Client`实例 */
     readonly CLIENT: oicq.Client;
+    /** QQ账号 */
     readonly ACCOUNT: Account;
+    /** 机器人状态 */
     private status: BotStatus;
     /**
-     * QQ机器人
+     * QQ机器人实例
      * @param account QQ账号
      * @param password QQ密码（如果为空则不会自动登录）
      */
