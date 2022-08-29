@@ -1,0 +1,13 @@
+{
+  "name": "oicq-sdk",
+  "entryPoints": [
+    "./src/index.ts"
+  ],
+  "entryPointStrategy": "Expand",
+  "out": "docs",
+  "plugin": [
+    "./node_modules/typedoc-theme-category/dist/index.js"
+  ],
+  "theme": "default",
+  "tsconfig": "./tsconfig.json"
+}
