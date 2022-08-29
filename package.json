@@ -1,21 +1,47 @@
 {
   "name": "oicq-sdk",
-  "version": "0.1.0",
-  "description": "",
+  "version": "0.1.4",
+  "description": "Offer SDK to build a QQ bot more easily based on `oicq`",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "test": "tsc && node ./test"
+    "build": "rimraf ./lib/**/* && tsc",
+    "test": "rimraf ./lib/**/* && tsc && node ./test",
+    "doc": "npx typedoc"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">= 16.13.1"
+  },
+  "repository": "https://github.com/Cnily03/oicq-sdk",
+  "bugs": "https://github.com/Cnily03/oicq-sdk/issues",
+  "homepage": "https://github.com/Cnily03/oicq-sdk#readme",
+  "changelogs": "https://github.com/Cnily03/oicq-sdk/releases",
+  "keywords": [
+    "oicq",
+    "sdk",
+    "bot",
+    "QQ",
+    "chatbot",
+    "qq-bot",
+    "QQ机器人",
+    "机器人"
+  ],
   "author": "Jevon Wang",
-  "license": "MIT",
+  "email": "cnily03@outlook.com",
+  "license": "MPL-2.0",
   "dependencies": {
     "colors": "^1.4.0",
     "oicq": "^2.3.1"
   },
   "devDependencies": {
-    "@types/node": "^18.7.12"
-  }
+    "@types/node": "^18.7.12",
+    "rimraf": "^3.0.2",
+    "typedoc": "~0.22.18",
+    "typedoc-theme-category": "^1.0.7"
+  },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "/lib/**/LICENSE"
+  ]
 }
