@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rimraf ./lib/**/* && tsc",
     "test": "rimraf ./lib/**/* && tsc && node ./test",
-    "doc": "npx typedoc"
+    "doc": "npx typedoc && cpy CNAME ./docs"
   },
   "engines": {
     "node": ">= 16.13.1"
@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.7.12",
+    "cpy-cli": "^4.2.0",
     "rimraf": "^3.0.2",
     "typedoc": "~0.22.18",
     "typedoc-theme-category": "^1.0.7"
