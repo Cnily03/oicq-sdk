@@ -1,6 +1,6 @@
 import "./colors";
 import * as readline from "readline";
-import { Writable } from "stream"
+import { Writable } from "stream";
 /**
  * Reading the console input with more options.
  * @param {String} qurey the string before the input

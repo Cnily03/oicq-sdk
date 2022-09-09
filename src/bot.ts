@@ -2,16 +2,42 @@ import "./workspace/colors";
 import * as oicq from "oicq";
 import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
-import { EventEntry, EventResponse, MessageEntry, MessageResponse } from "./bot/events";
-import { toMessage } from "./bot/message";
+import { EventMap, EventEntry, EventResponse, MessageEntry, MessageResponse } from "./events";
+import { toMessage } from "./message";
+
+export abstract class AppHandler<T> {
+    /**
+     * What is the app handler called, used to distinguish between different app handlers.
+     */
+    readonly $identify: string;
+    /**
+     * Set up the app handler.
+     * @param identify what is the app handler called, used to distinguish between different app handlers
+     */
+    constructor(identify: string) {
+        this.$identify = identify;
+    }
+    /**
+     * See example:
+     * ```
+     * const app = new Bot(...)
+     * const handler = new Handler(...)
+     * ...
+     * app.use(handler)
+     * ```
+     * `app.use` will call the function apphandler in the class handler.
+     * @param {T} app app instance
+     */
+    abstract apphandler(app: T): any;
+}
 
 /** 支持的账号数据类型 */
-export declare type Account = number | string | Buffer;
+export type Account = number | string | Buffer;
 /** 支持的密码数据类型 */
-export declare type Password = string | Buffer;
+export type Password = string | Buffer;
 
 /** 机器人状态 */
-export interface BotStatus {
+interface BotStatus {
     /** Show status to do with the OICQ Client */
     client: {
         /** if existing the client whose type is `oicq.Client` */
@@ -21,11 +47,6 @@ export interface BotStatus {
     }
 }
 
-// export interface EventPool extends oicq.EventMap {
-//     name: keyof oicq.EventMap,
-//     action
-// };
-
 export interface Bot {
     /**
      * 注册事件（携带入口条件）
@@ -33,24 +54,24 @@ export interface Bot {
      * @param entry 入口函数
      * @param response 回应函数
      */
-    register<T extends keyof oicq.EventMap>(event_name: T, entry: EventEntry<Bot, T>, response: EventResponse<Bot, T>): void;
+    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T>, response: EventResponse<Bot, T>): void;
     /**
      * 注册事件（不带入口条件）
      * @param event_name 事件名称
      * @param response 回应函数
      */
-    register<T extends keyof oicq.EventMap>(event_name: T, response: EventResponse<Bot, T>): void;
+    register<T extends keyof EventMap<this>>(event_name: T, response: EventResponse<Bot, T>): void;
     /**
      * 注册消息事件（携带入口条件）
      * @param entry 入口，可以是函数或消息实例
      * @param response 回应，可以是函数或消息实例
      */
-    registerMsg<T extends keyof oicq.EventMap>(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>): void;
+    registerMsg<T extends keyof EventMap<this>>(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>): void;
     /**
      * 注册消息事件（不带入口条件）
      * @param response 回应，可以是函数或消息实例
      */
-    registerMsg<T extends keyof oicq.EventMap>(response: MessageResponse<Bot, T>): void;
+    registerMsg<T extends keyof EventMap<this>>(response: MessageResponse<Bot, T>): void;
 }
 
 export class Bot {
@@ -59,13 +80,15 @@ export class Bot {
     /** QQ账号 */
     readonly ACCOUNT: Account;
     /** 机器人状态 */
-    private status: BotStatus;
+    protected status: BotStatus;
     /**
      * QQ机器人实例
      * @param account QQ账号
-     * @param password QQ密码（如果为空则不会自动登录）
+     * @param password QQ密码或其MD5值（如果为空则不会自动登录）
      */
     constructor(account: Account, password?: Password) {
+        const that = this;
+        // Default status
         this.status = {
             client: {
                 exist: false,
@@ -75,25 +98,30 @@ export class Bot {
         // Generate CLIENT
         this.CLIENT = Bot.createClient(account);
         this.status.client.exist = true;
-        // STORE ACCOUNT
+        // Add Event to CLIENT
+        this.CLIENT.on("system.online", function () {
+            that.status.client.logged = true;
+        }).on("system.offline", function () {
+            that.status.client.logged = false;
+        });
+        // Store ACCOUNT
         this.ACCOUNT = parseInt(account.toString());
-        // define property LOGIN
+        // Process the password
         const PASSWORD_MD5 = (function () {
             if (!password) return undefined;
             if (Buffer.isBuffer(password)) password = String(password);
             if (password.length == 32) return password;
             else return md5(password);
         })()
-        // login method
+        // Login method
         this.loginByToken = loginByToken.bind(this);
         this.loginByPassword = loginByPassword.bind(this);
         this.loginByQRCode = loginByQRCode.bind(this);
         this.login = login.bind(this);
-        // login by password
+        // Login by password
         if (PASSWORD_MD5) {
-            this.loginByPassword(PASSWORD_MD5)
+            this.loginByPassword(PASSWORD_MD5);
         }
-        // TODO: reaisterMsg
     }
 
     /**
@@ -109,7 +137,7 @@ export class Bot {
      */
     readonly loginByToken: (this: Bot) => Promise<void>;
     /**
-     * 使用密码登录，如果密码为空则会在控制台界面要求输入
+     * 使用密码（或其MD5值）登录，如果为空则会在控制台界面要求输入
      */
     readonly loginByPassword: (this: Bot, password?: Password) => Promise<void>;
     /**
@@ -130,7 +158,7 @@ export class Bot {
      */
     readonly login: (this: Bot, password?: Password) => Promise<void>;
 
-    register<T extends keyof oicq.EventMap>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void { // Promise<Parameters<oicq.EventMap[T]>[1]>
+    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void { // Promise<Parameters<EventMap<this>[T]>[1]>
         const that = this;
         function isEntryLegal(entry: EventEntry<Bot, T> | EventResponse<Bot, T>): entry is EventEntry<Bot, T> {
             return !!entry && !!response;
@@ -138,11 +166,13 @@ export class Bot {
         function isResponseLegal(response?: EventResponse<Bot, T>): response is EventResponse<Bot, T> {
             return !!response;
         }
+        // registerMsg(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>)
         if (isEntryLegal(entry) && isResponseLegal(response)) {
             this.CLIENT.on(event_name, (event: any) => {
                 if (entry.call(that, event)) response.call(that, event);
             })
         } else {
+            // registerMsg(response: MessageResponse<Bot, T>)
             const response: EventResponse<Bot, T> = entry;
             this.CLIENT.on(event_name, (event: any) => response.call(that, event));
         }
@@ -157,7 +187,7 @@ export class Bot {
         }
         const genEntryFunc = (entry: MessageEntry<Bot, T>): EventEntry<Bot, T> => {
             if (typeof entry != "function") { // entry is Sendable
-                return function (event: Parameters<oicq.EventMap<oicq.Client>[T]>[0]): boolean {
+                return function (event: Parameters<EventMap<Bot>[T]>[0]): boolean {
                     return JSON.stringify(toMessage(entry)) == JSON.stringify(event.message);
                 }
             } else return entry; // entry is Function
@@ -165,8 +195,8 @@ export class Bot {
         const genResponseFunc = (response: MessageResponse<Bot, T>): EventResponse<Bot, T> => {
             if (typeof response != "function") { // response is Sendable
                 const _response: oicq.Sendable = response;
-                return function (event: Parameters<oicq.EventMap<oicq.Client>[T]>[0], quote?: boolean): void {
-                    event.reply(_response, quote);
+                return function (event: Parameters<EventMap<Bot>[T]>[0]): void {
+                    event.reply(_response);
                 }
             }
             else return response; // response is Function
@@ -181,7 +211,7 @@ export class Bot {
     }
 
     /**
-     * 创建一个OICQ Client并保存到`CLIENT`属性中
+     * 创建一个OICQ Client并返回，用于保存到`CLIENT`属性中
      * @param account QQ acount to login
      * @returns {oicq.Client}
      */
@@ -203,5 +233,14 @@ export class Bot {
         } else {
             throw new Error("Account is illegal");
         }
+    }
+
+    use(instance: AppHandler<this> | ((app: Bot) => any)): Bot {
+        function isAppHandler(instance: AppHandler<Bot> | ((app: Bot) => any)): instance is AppHandler<Bot> {
+            return "apphandler" in instance;
+        }
+        if (isAppHandler(instance)) instance.apphandler(this);
+        else instance(this);
+        return this;
     }
 }
