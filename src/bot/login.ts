@@ -5,12 +5,12 @@ import { reading } from "../workspace/reading";
 import { md5 } from "../workspace/crypto";
 
 
-let __before_run = false;
+let __has_run = false;
 
 /** 预设置登录的监听事件 */
 const __before = function (this: Bot): void {
-    if (__before_run) return;
-    __before_run = true;
+    if (__has_run) return;
+    __has_run = true;
     // Login by password
     this.CLIENT.on("system.login.slider", function (event) { //监听滑动验证码事件
         reading("请输入Ticket：".info).then((input: Buffer) => {
@@ -52,7 +52,7 @@ const __before = function (this: Bot): void {
     }).on("system.login.qrcode", async function (event) { // login by QR Code
         await reading("扫码完成并确认后回车".info)
         this.login();
-    })
+    });
 }
 
 /** 使用 Token 登录 */
@@ -67,7 +67,7 @@ export const loginByToken: Bot["loginByToken"] = async function (this: Bot) {
     }
 }
 
-/** 使用密码登录，如果密码为空则会在控制台界面要求输入 */
+/** 使用密码（或其MD5值）登录，如果为空则会在控制台界面要求输入 */
 export const loginByPassword: Bot["loginByPassword"] = async function (this: Bot, password?: Password) {
     __before.call(this);
     // logging in by token failed, ask for password
@@ -90,5 +90,5 @@ export const loginByQRCode: Bot["loginByQRCode"] = async function (this: Bot) {
 /** 自动登录 */
 export const login: Bot["login"] = async function (this: Bot, password?: Password) {
     __before.call(this);
-    return this.CLIENT.login(password)
+    return this.CLIENT.login(password);
 }
