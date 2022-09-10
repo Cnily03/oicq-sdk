@@ -1,6 +1,7 @@
 import { Bot } from "./bot";
-import { EventMap, EventPool } from "./events";
+import { ActionThis, EventElem, EventMap, EventPool, EventResponse } from "./events";
 import { AppHandler } from "./bot";
+
 export class Listener extends AppHandler<Bot> {
     private event_pool: EventPool<Bot>;
     /**
@@ -12,8 +13,24 @@ export class Listener extends AppHandler<Bot> {
     }
 
     apphandler(app: Bot) {
+        // this.event()
+        // action.bind(this)
+        for (const elem of this.event_pool) {
+            app.CLIENT.on(elem.event, (...args: any) => {
+                elem.action.call({
+                    app: app
+                }, ...args)
+            });
+        }
     }
-    event(event_name: keyof EventMap) { // TODO: register event
+
+    // TODO: Use options
+
+    event<T extends keyof EventMap<Bot>>(event_name: T, action: EventElem<Bot, T>["action"]) {
+        this.event_pool.push({
+            event: event_name,
+            action: action
+        })
         return this;
     }
 }

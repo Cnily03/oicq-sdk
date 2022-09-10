@@ -3,7 +3,7 @@ import * as oicq from "oicq";
 import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
 import { EventMap, EventEntry, EventResponse, MessageEntry, MessageResponse } from "./events";
-import { toMessage } from "./message";
+import * as message from "./message";
 
 export abstract class AppHandler<T> {
     /**
@@ -66,12 +66,12 @@ export interface Bot {
      * @param entry 入口，可以是函数或消息实例
      * @param response 回应，可以是函数或消息实例
      */
-    registerMsg<T extends keyof EventMap<this>>(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>): void;
+    registerMsg(entry: MessageEntry<Bot>, response: MessageResponse<Bot>): void;
     /**
      * 注册消息事件（不带入口条件）
      * @param response 回应，可以是函数或消息实例
      */
-    registerMsg<T extends keyof EventMap<this>>(response: MessageResponse<Bot, T>): void;
+    registerMsg(response: MessageResponse<Bot>): void;
 }
 
 export class Bot {
@@ -158,7 +158,7 @@ export class Bot {
      */
     readonly login: (this: Bot, password?: Password) => Promise<void>;
 
-    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void { // Promise<Parameters<EventMap<this>[T]>[1]>
+    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void {
         const that = this;
         function isEntryLegal(entry: EventEntry<Bot, T> | EventResponse<Bot, T>): entry is EventEntry<Bot, T> {
             return !!entry && !!response;
@@ -166,33 +166,33 @@ export class Bot {
         function isResponseLegal(response?: EventResponse<Bot, T>): response is EventResponse<Bot, T> {
             return !!response;
         }
-        // registerMsg(entry: MessageEntry<Bot, T>, response: MessageResponse<Bot, T>)
+        // register(event_name, entry: EventEntry<Bot, typeof event_name>, response: EventResponse<Bot, typeof event_name>)
         if (isEntryLegal(entry) && isResponseLegal(response)) {
-            this.CLIENT.on(event_name, (event: any) => {
-                if (entry.call(that, event)) response.call(that, event);
+            this.CLIENT.on(event_name, (...args: any) => {
+                if (entry.call(that, ...args)) response.call(that, ...args);
             })
         } else {
-            // registerMsg(response: MessageResponse<Bot, T>)
+            // register(event_name, response: EventResponse<Bot, typeof event_name>)
             const response: EventResponse<Bot, T> = entry;
-            this.CLIENT.on(event_name, (event: any) => response.call(that, event));
+            this.CLIENT.on(event_name, (...args: any) => response.call(that, ...args));
         }
     }
 
-    registerMsg<T extends "message">(entry: MessageEntry<Bot, T> | MessageResponse<Bot, T>, response?: MessageResponse<Bot, T>): void {
-        function isEntryLegal(entry: MessageEntry<Bot, T> | MessageResponse<Bot, T>): entry is MessageEntry<Bot, T> {
+    registerMsg<T extends "message">(entry: MessageEntry<Bot> | MessageResponse<Bot>, response?: MessageResponse<Bot>): void {
+        function isEntryLegal(entry: MessageEntry<Bot> | MessageResponse<Bot>): entry is MessageEntry<Bot> {
             return !!entry && !!response;
         }
-        function isResponseLegal(response?: MessageResponse<Bot, T>): response is MessageResponse<Bot, T> {
+        function isResponseLegal(response?: MessageResponse<Bot>): response is MessageResponse<Bot> {
             return !!response;
         }
-        const genEntryFunc = (entry: MessageEntry<Bot, T>): EventEntry<Bot, T> => {
+        const genEntryFunc = (entry: MessageEntry<Bot>): EventEntry<Bot, T> => {
             if (typeof entry != "function") { // entry is Sendable
                 return function (event: Parameters<EventMap<Bot>[T]>[0]): boolean {
-                    return JSON.stringify(toMessage(entry)) == JSON.stringify(event.message);
+                    return JSON.stringify(message.fromSendable(entry)) == JSON.stringify(event.message);
                 }
             } else return entry; // entry is Function
         }
-        const genResponseFunc = (response: MessageResponse<Bot, T>): EventResponse<Bot, T> => {
+        const genResponseFunc = (response: MessageResponse<Bot>): EventResponse<Bot, T> => {
             if (typeof response != "function") { // response is Sendable
                 const _response: oicq.Sendable = response;
                 return function (event: Parameters<EventMap<Bot>[T]>[0]): void {

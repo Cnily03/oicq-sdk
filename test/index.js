@@ -1,11 +1,13 @@
 const osdk = require("../");
+const {
+    Listener
+} = osdk;
 require("../lib/workspace/colors");
 // const CONFIG = require("./config");
 // const oicq = require("oicq");
 const reading = require("../lib/workspace/reading")
 
-var OICQ
-
+var OICQ;
 // account
 const isAccountLegal = function (account) {
     if (!account) return false;
@@ -36,10 +38,19 @@ getAccount(3136377562).then(account => {
             if (arg.includes(":") && (loginArg = arg.split(":")).length == 2 && loginArg[0].trim() == "login")
                 return ["password", "qrcode"].includes(loginArg[1].trim().toLowerCase()) ?
                     loginArg[1].trim().toLowerCase() : "qrcode";
-        return "password";
+        return "auto";
     })()
     if (loginType == "password") OICQ.loginByPassword();
-    else OICQ.loginByQRCode()
+    else if (loginType == "qrcode") OICQ.loginByQRCode();
+    else {
+        OICQ.loginByToken().catch(() => {
+            OICQ.loginByPassword().catch(() => {
+                OICQ.loginByQRCode().catch(e => {
+                    console.log(e);
+                });
+            });
+        });
+    }
 
     // 监听上线事件
     OICQ.CLIENT.on("system.online", () => console.log("Logged in!".success));
@@ -48,6 +59,13 @@ getAccount(3136377562).then(account => {
     OICQ.CLIENT.on("message", (event) => {
         console.log(event)
     });
-    OICQ.registerMsg(["abc", "def"], "received");
-    OICQ.registerMsg(["test", " response"]);
+    OICQ.registerMsg(["1", "12"], "456");
+    OICQ.registerMsg(["request", " response"]);
+
+    // 使用监听对象
+    const listner1 = new Listener();
+    listner1.event("message", function (event) {
+        if (event.raw_message = "hello") event.reply("world!")
+    })
+    OICQ.use(listner1);
 })
