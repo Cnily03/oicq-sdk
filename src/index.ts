@@ -1,4 +1,5 @@
 export * from "./bot"
+export * from "./message"
 export * from "./events"
 export * from "./listener"
-export * as utilities  from "./utilities"
+// export * as utilities  from "./utilities"

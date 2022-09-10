@@ -59,7 +59,7 @@ function _cqToMessage(str: string): oicq.MessageElem[] {
 }
 
 /** 将可发送的字符串等类别转化为`oicq.MessageElem[]` */
-export function toMessage(content: oicq.Sendable): oicq.MessageElem[] {
+export function fromSendable(content: oicq.Sendable): oicq.MessageElem[] {
     if (!Array.isArray(content)) {
         // string | MessageElem
         if (typeof content == "string") return _cqToMessage(content);
@@ -74,7 +74,7 @@ export function toMessage(content: oicq.Sendable): oicq.MessageElem[] {
                 _cqToMessage(element).forEach(messageElem => {
                     elems.push(messageElem);
                 })
-            else elems.push(element)
+            else elems.push(element);
         }
         // 合并连续的 text 类型
         result.push(elems[0]);

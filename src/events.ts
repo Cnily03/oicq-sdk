@@ -5,14 +5,20 @@ export interface EventMap<T = Bot> extends oicq.EventMap<T> {
 };
 
 /** 事件入口函数 */
-export type EventEntry<T, S extends keyof EventMap<T>> = (this: T, event: Parameters<EventMap<T>[S]>[0]) => boolean;
+export type EventEntry<T, S extends keyof EventMap<T>> = (this: T, ...args: Parameters<EventMap<T>[S]>) => boolean;
 /** 事件回应函数 */
-export type EventResponse<T, S extends keyof EventMap<T>> = (this: T, event: Parameters<EventMap<T>[S]>[0]) => void;
+export type EventResponse<T, S extends keyof EventMap<T>> = (this: T, ...args: Parameters<EventMap<T>[S]>) => void;
 
 /** 消息事件入口函数或字符串 */
-export type MessageEntry<T, S extends keyof EventMap<T>> = EventEntry<T, S> | oicq.Sendable;
+export type MessageEntry<T> = EventEntry<T, "message"> | oicq.Sendable;
 /** 消息事件回应函数或字符串 */
-export type MessageResponse<T, S extends keyof EventMap<T>> = EventResponse<T, S> | oicq.Sendable;
+export type MessageResponse<T> = EventResponse<T, "message"> | oicq.Sendable;
 
+/** 单事件元素执行函数的This */
+export type ActionThis<T> = {
+    app: T
+}
+/** 单事件元素 */
+export type EventElem<T, S extends keyof EventMap<T>> = { event: S, action: EventResponse<ActionThis<T>, S> }
 /** 事件池 */
-export type EventPool<T> = { event: keyof EventMap<T>, action: any }[];
+export type EventPool<T> = EventElem<T, keyof EventMap<T>>[];

@@ -1,1 +1,0 @@
-export { toMessage } from "./message"
