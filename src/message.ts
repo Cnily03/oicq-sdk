@@ -95,3 +95,7 @@ export function fromSendable(content: oicq.Sendable): oicq.MessageElem[] {
         return result;
     }
 }
+
+export function equals(arg1: oicq.Sendable, arg2: oicq.Sendable): boolean {
+    return JSON.stringify(fromSendable(arg1)) == JSON.stringify(fromSendable(arg2));
+}

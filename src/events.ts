@@ -15,10 +15,10 @@ export type MessageEntry<T> = EventEntry<T, "message"> | oicq.Sendable;
 export type MessageResponse<T> = EventResponse<T, "message"> | oicq.Sendable;
 
 /** 单事件元素执行函数的This */
-export type ActionThis<T> = {
+export interface ActionThis<T, S = any> {
     app: T
 }
 /** 单事件元素 */
-export type EventElem<T, S extends keyof EventMap<T>> = { event: S, action: EventResponse<ActionThis<T>, S> }
+export type EventElem<T, S extends keyof EventMap<T>, A = ActionThis<T, S>> = { hash: string, event: S, action: EventResponse<A, S> }
 /** 事件池 */
-export type EventPool<T> = EventElem<T, keyof EventMap<T>>[];
+export type EventPool<T, E = EventElem<T, keyof EventMap<T>>> = E[];
