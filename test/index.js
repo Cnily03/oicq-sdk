@@ -59,13 +59,13 @@ getAccount(3136377562).then(account => {
     OICQ.CLIENT.on("message", (event) => {
         console.log(event)
     });
-    OICQ.registerMsg(["1", "12"], "456");
-    OICQ.registerMsg(["request", " response"]);
+    OICQ.registerMsg("request", "response");
+    OICQ.registerMsg(["1", "12"]);
 
     // 使用监听对象
     const listner1 = new Listener();
     listner1.event("message", function (event) {
-        if (event.raw_message = "hello") event.reply("world!")
+        if (event.raw_message == "hello") event.reply("world!")
     })
     OICQ.use(listner1);
 })

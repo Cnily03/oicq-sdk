@@ -4,37 +4,16 @@ import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
 import { EventMap, EventEntry, EventResponse, MessageEntry, MessageResponse } from "./events";
 import * as message from "./message";
-
-export abstract class AppHandler<T> {
-    /**
-     * What is the app handler called, used to distinguish between different app handlers.
-     */
-    readonly $identify: string;
-    /**
-     * Set up the app handler.
-     * @param identify what is the app handler called, used to distinguish between different app handlers
-     */
-    constructor(identify: string) {
-        this.$identify = identify;
-    }
-    /**
-     * See example:
-     * ```
-     * const app = new Bot(...)
-     * const handler = new Handler(...)
-     * ...
-     * app.use(handler)
-     * ```
-     * `app.use` will call the function apphandler in the class handler.
-     * @param {T} app app instance
-     */
-    abstract apphandler(app: T): any;
-}
+import { AppHandler } from "./interface/app-handler"
 
 /** 支持的账号数据类型 */
 export type Account = number | string | Buffer;
 /** 支持的密码数据类型 */
 export type Password = string | Buffer;
+/** QQ号类型 */
+export type UserID = number | string;
+export type GroupID = number | string;
+export type DiscussID = number | string;
 
 /** 机器人状态 */
 interface BotStatus {
