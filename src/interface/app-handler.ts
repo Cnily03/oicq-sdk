@@ -14,7 +14,7 @@ export abstract class AppHandler<T> {
      * See example:
      * ```
      * const app = new Bot(...)
-     * const handler = new Handler(...)
+     * const handler = new AppHandler(...)
      * ...
      * app.use(handler)
      * ```

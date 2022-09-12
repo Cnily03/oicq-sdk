@@ -1,6 +1,7 @@
 import * as oicq from "oicq";
-import { Account, Bot, DiscussID, GroupID, UserID } from "../bot";
-import { ActionThis, EventElem, EventMap, EventPool, EventResponse } from "../events";
+import { NOOP } from "oicq/lib/common";
+import { Bot, DiscussID, GroupID, UserID } from "../bot";
+import { ActionThis, EventElem, EventMap, EventPool } from "../events";
 import { AppHandler } from "../interface/app-handler";
 import { sha1 } from "../workspace/crypto";
 interface ListenerActionThis<T, S extends keyof EventMap<Bot>> extends ActionThis<T, S> {
@@ -16,7 +17,7 @@ export class Listener extends AppHandler<Bot> {
     // private event_pool: EventPool<Bot, ListenerEventElem<Bot, keyof EventMap<Bot>>>;
     private event_pool: EventPool<Bot, ListenerEventElem<Bot, keyof EventMap<Bot>, any>>
     /**
-     * Register one or more listener to some event(s).
+     * Register a listener to one or more listeners.
      */
     constructor() {
         super("Listener");
@@ -39,6 +40,12 @@ export class Listener extends AppHandler<Bot> {
         }
     }
 
+    /**
+     * 
+     * @param event_name 事件名称
+     * @param action 事件执行函数
+     * @param options 附加选项
+     */
     event<T extends keyof EventMap<Bot>>(
         event_name: T,
         action: ListenerEventElem<Bot, T>["action"],
@@ -56,9 +63,9 @@ export class Listener extends AppHandler<Bot> {
         return this;
     }
 
-    option_pass<T extends keyof EventMap<Bot>>(event_name: T, options: Options[T], args: Parameters<EventMap<Bot>[T]>) {
+    private option_pass<T extends keyof EventMap<Bot>>(event_name: T, options: Options[T], args: Parameters<EventMap<Bot>[T]>) {
         switch (true) {
-            case Listener.isEventNameMessage(event_name): {// event_name is EventName.Message
+            case Listener.isEventNameMessage(event_name): { // event_name is EventName.Message
                 switch ((args[0] as oicq.PrivateMessageEvent | oicq.GroupMessageEvent | oicq.DiscussMessageEvent).message_type) {
                     case "private":
                         const private_event = args[0] as oicq.PrivateMessageEvent;
@@ -101,7 +108,7 @@ export class Listener extends AppHandler<Bot> {
         id: number | string,
         include: number | string | (number | string)[] | undefined,
         exclude: number | string | (number | string)[] | undefined
-    ) {
+    ): boolean {
         var includePass = false, excludePass = true;
         if (typeof id !== "number") id = parseInt(id);
         // exclude
@@ -125,12 +132,21 @@ export class Listener extends AppHandler<Bot> {
     }
 
     private static mergeOptions<T>(options: T, patch: Partial<T>) {
-        return { ...options, ...patch } as T; // TODO: complete it
+        for (const key of Array.from(new Set([...Object.keys(options as {}), ...Object.keys(patch as {})]))) {
+            const _options = (options as any)[key], _patch = (patch as any)[key];
+            if (isJSON(_options) && isJSON(_patch))
+                (patch as any)[key] = Listener.mergeOptions(_options, _patch);
+        }
+        return { ...options, ...patch } as T;
     }
 
     private static isEventNameMessage(event_name: keyof EventMap<Bot>): event_name is EventName.Message {
         return /^message/.test(event_name);
     }
+}
+
+function isJSON(obj: any): obj is { [k: string]: any, [k: number]: any } {
+    return typeof obj == 'object' && JSON.stringify(obj).indexOf('{') == 0
 }
 
 /** 事件名称的分类 */
@@ -145,88 +161,118 @@ namespace EventName {
 
 /** 不同时间的Options的格式 */
 namespace OptionsFormat {
-    export type Message = {
+    type BaseMessage = {
+        /**
+         * 是否引用对方的消息
+         * @notice 该配置项仅作为传递项，需要通过`this.options.quote`在执行函数中获取并设置
+         * @default false
+         */
         quote: boolean,
         /** 
          * 优先级低于`exclude`.
-         * 即当`include`和·exclude·都包含同一值时，忽略`include`.
+         * 即当`include`和`exclude`都包含同一值时，忽略`include`.
          */
-        include: {
-            private?: UserID | UserID[],
-            group?: GroupID | GroupID[],
-            group_member?: UserID | UserID[],
-            discuss?: DiscussID | DiscussID[],
-            discuss_member?: UserID | UserID[],
-
-        },
+        include: { [k: string]: any },
         /** 
          * 优先级高于`include`.
-         * 即当`include`和·exclude·都包含同一值时，忽略`include`.
+         * 即当`include`和`exclude`都包含同一值时，忽略`include`.
          */
-        exclude: {
-            private?: UserID | UserID[],
-            group?: GroupID | GroupID[],
-            group_member?: UserID | UserID[],
-            discuss?: DiscussID | DiscussID[],
-            discuss_member?: UserID | UserID[],
-        }
+        exclude: { [k: string]: any }
     }
+    /**
+     * 以下`Options`的格式
+     * ```
+     * Options["message"]
+     * ```
+     */
+    export type Message = Message.Private & Message.Group & Message.Discuss
     export namespace Message {
+        /**
+         * 以下`Options`的格式
+         * ```
+         * Options["message.private" | "message.private.friend" | "message.private.group" | "message.private.other" | "message.private.self"]
+         * ```
+         */
         export type Private = {
-            quote: boolean,
-            /** 
-             * 优先级低于`exclude`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             include: {
+                /**
+                 * 包含的用户QQ号
+                 * @default undefined
+                 */
                 private?: UserID | UserID[]
             },
-            /** 
-             * 优先级高于`include`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             exclude: {
+                /**
+                 * 排除的用户QQ号
+                 * @default undefined
+                 */
                 private?: UserID | UserID[]
             }
-        }
+        } & BaseMessage
+        /**
+         * 以下`Options`的格式
+         * ```
+         * Options["message.group" | "message.group.anonymous" | "message.group.normal"]
+         * ```
+         */
         export type Group = {
-            quote: boolean,
-            /** 
-             * 优先级低于`exclude`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             include: {
+                /**
+                 * 包含的群号
+                 * @default undefined
+                 */
                 group?: GroupID | GroupID[],
+                /**
+                 * 包含的群成员
+                 * @default undefined
+                 */
                 group_member?: UserID | UserID[]
             },
-            /** 
-             * 优先级高于`include`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             exclude: {
+                /**
+                 * 排除的群号
+                 * @default undefined
+                 */
                 group?: GroupID | GroupID[],
+                /**
+                 * 排除的群成员
+                 * @default undefined
+                 */
                 group_member?: UserID | UserID[]
             }
-        }
+        } & BaseMessage
+        /**
+         * 以下`Options`的格式
+         * ```
+         * Options["message.discuss"]
+         * ```
+         */
         export type Discuss = {
-            quote: boolean,
-            /** 
-             * 优先级低于`exclude`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             include: {
-                discuss?: GroupID | GroupID[],
+                /**
+                 * 包含的讨论组号
+                 * @default undefined
+                 */
+                discuss?: DiscussID | DiscussID[],
+                /**
+                 * 包含的讨论组成员
+                 * @default undefined
+                 */
                 discuss_member?: UserID | UserID[]
             },
-            /** 
-             * 优先级高于`include`.
-             * 即当`include`和·exclude·都包含同一值时，忽略`include`.
-             */
             exclude: {
-                discuss?: GroupID | GroupID[],
+                /**
+                 * 排除的讨论组号
+                 * @default undefined
+                 */
+                discuss?: DiscussID | DiscussID[],
+                /**
+                 * 排除的讨论组成员
+                 * @default undefined
+                 */
                 discuss_member?: UserID | UserID[]
             }
-        }
+        } & BaseMessage
     }
 }
 
@@ -241,14 +287,18 @@ const default_options: Partial<Options> = {
     "message": {
         quote: false,
         include: {
-            group: undefined,
             private: undefined,
-            group_member: undefined
+            group: undefined,
+            group_member: undefined,
+            discuss: undefined,
+            discuss_member: undefined
         },
         exclude: {
-            group: undefined,
             private: undefined,
-            group_member: undefined
+            group: undefined,
+            group_member: undefined,
+            discuss: undefined,
+            discuss_member: undefined
         }
     },
     "message.discuss": {

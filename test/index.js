@@ -1,13 +1,11 @@
 const osdk = require("../");
-const {
-    Listener
-} = osdk;
 require("../lib/workspace/colors");
+
 // const CONFIG = require("./config");
 // const oicq = require("oicq");
 const reading = require("../lib/workspace/reading")
 
-var OICQ;
+var Bot;
 // account
 const isAccountLegal = function (account) {
     if (!account) return false;
@@ -29,7 +27,7 @@ function getAccount(account) {
     })
 }
 getAccount(3136377562).then(account => {
-    OICQ = new osdk.Bot(account);
+    Bot = new osdk.Bot(account);
 
     // Login
     const loginType = (function () {
@@ -40,12 +38,12 @@ getAccount(3136377562).then(account => {
                     loginArg[1].trim().toLowerCase() : "qrcode";
         return "auto";
     })()
-    if (loginType == "password") OICQ.loginByPassword();
-    else if (loginType == "qrcode") OICQ.loginByQRCode();
+    if (loginType == "password") Bot.loginByPassword();
+    else if (loginType == "qrcode") Bot.loginByQRCode();
     else {
-        OICQ.loginByToken().catch(() => {
-            OICQ.loginByPassword().catch(() => {
-                OICQ.loginByQRCode().catch(e => {
+        Bot.loginByToken().catch(() => {
+            Bot.loginByPassword().catch(() => {
+                Bot.loginByQRCode().catch(e => {
                     console.log(e);
                 });
             });
@@ -53,19 +51,22 @@ getAccount(3136377562).then(account => {
     }
 
     // 监听上线事件
-    OICQ.CLIENT.on("system.online", () => console.log("Logged in!".success));
+    Bot.CLIENT.on("system.online", () => console.log("Logged in!".success));
 
     // 监听消息并回复
-    OICQ.CLIENT.on("message", (event) => {
+    Bot.CLIENT.once("message", (event) => {
         console.log(event)
     });
-    OICQ.registerMsg("request", "response");
-    OICQ.registerMsg(["1", "12"]);
+    Bot.registerMsg("request", "response");
+    Bot.onceMsg(["我是", "人工智障！"]);
 
     // 使用监听对象
-    const listner1 = new Listener();
+    const listner1 = new osdk.Listener();
     listner1.event("message", function (event) {
-        if (event.raw_message == "hello") event.reply("world!")
+        if (osdk.message.equals(event.message, "hello")) event.reply("world!", this.options.quote)
+    }, {
+        quote: true
     })
-    OICQ.use(listner1);
+
+    Bot.use(listner1);
 })

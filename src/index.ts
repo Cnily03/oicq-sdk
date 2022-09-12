@@ -1,5 +1,7 @@
 export * from "./bot"
-export * from "./message"
+export * as message from "./message"
 export * from "./events"
 export * from "./components/listener"
+export * from "./interface/app-handler"
+export * from "./interface/plugin"
 // export * as utilities  from "./utilities"
