@@ -79,6 +79,9 @@ export interface Bot {
     onceMsg(response: MessageResponse<Bot>): void;
 }
 
+/**
+ * 一个QQ机器人
+ */
 export class Bot {
     /** `oicq.Client`实例 */
     readonly CLIENT: oicq.Client;
@@ -86,6 +89,9 @@ export class Bot {
     readonly ACCOUNT: Account;
     /** 机器人状态 */
     protected status: BotStatus;
+    /**
+     * 一个QQ机器人
+     */
     constructor(account: Account, password?: Password) {
         const that = this;
         // Default status

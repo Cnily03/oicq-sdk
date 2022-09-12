@@ -9,6 +9,9 @@ interface ListenerActionThis<T, S extends keyof EventMap<Bot>> extends ActionThi
 }
 type ListenerEventElem<T, S extends keyof EventMap<T>, A = ListenerActionThis<T, S>> = EventElem<T, S, A>
 
+/**
+ * 一个事件监听器
+ */
 export class Listener extends AppHandler<Bot> {
     private default_options: Partial<Options>;
     private option_map: {
