@@ -1,10 +1,13 @@
+/**
+ * Set up an app handler
+ */
 export abstract class AppHandler<T> {
     /**
      * What is the app handler called, used to distinguish between different app handlers.
      */
     readonly $identify: string;
     /**
-     * Set up the app handler.
+     * Set up an app handler or a plugin.
      * @param identify what is the app handler called, used to distinguish between different app handlers
      */
     constructor(identify: string) {
