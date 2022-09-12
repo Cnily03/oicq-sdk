@@ -58,7 +58,7 @@ function _cqToMessage(str: string): oicq.MessageElem[] {
     return elems;
 }
 
-/** 将可发送的字符串等类别转化为`oicq.MessageElem[]` */
+/** 将可发送的消息类转化为`oicq.MessageElem[]` */
 export function fromSendable(content: oicq.Sendable): oicq.MessageElem[] {
     if (!Array.isArray(content)) {
         // string | MessageElem
@@ -96,6 +96,9 @@ export function fromSendable(content: oicq.Sendable): oicq.MessageElem[] {
     }
 }
 
+/**
+ * 比较两条消息的内容是否相同
+ */
 export function equals(arg1: oicq.Sendable, arg2: oicq.Sendable): boolean {
     return JSON.stringify(fromSendable(arg1)) == JSON.stringify(fromSendable(arg2));
 }

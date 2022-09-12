@@ -1,6 +1,7 @@
 import * as oicq from "oicq";
 import { Bot } from "./bot";
 
+/** 事件地图 */
 export interface EventMap<T = Bot> extends oicq.EventMap<T> {
 };
 

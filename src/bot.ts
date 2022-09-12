@@ -51,6 +51,32 @@ export interface Bot {
      * @param response 回应，可以是函数或消息实例
      */
     registerMsg(response: MessageResponse<Bot>): void;
+    /**
+     * 注册单次事件（携带入口条件）
+     * @param event_name 事件名称
+     * @param entry 入口函数
+     * @param response 回应函数
+     * @notice 只有当`response`函数被成功执行才算`once`成功a
+     */
+    once<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T>, response: EventResponse<Bot, T>): void;
+    /**
+     * 注册单次事件（不带入口条件）
+     * @param event_name 事件名称
+     * @param response 回应函数
+     */
+    once<T extends keyof EventMap<this>>(event_name: T, response: EventResponse<Bot, T>): void;
+    /**
+     * 注册单次消息事件（携带入口条件）
+     * @param entry 入口，可以是函数或消息实例
+     * @param response 回应，可以是函数或消息实例
+     * @notice 只有当`response`函数被成功执行才算`once`成功
+     */
+    onceMsg(entry: MessageEntry<Bot>, response: MessageResponse<Bot>): void;
+    /**
+     * 注册单次消息事件（不带入口条件）
+     * @param response 回应，可以是函数或消息实例
+     */
+    onceMsg(response: MessageResponse<Bot>): void;
 }
 
 export class Bot {
@@ -60,11 +86,6 @@ export class Bot {
     readonly ACCOUNT: Account;
     /** 机器人状态 */
     protected status: BotStatus;
-    /**
-     * QQ机器人实例
-     * @param account QQ账号
-     * @param password QQ密码或其MD5值（如果为空则不会自动登录）
-     */
     constructor(account: Account, password?: Password) {
         const that = this;
         // Default status
@@ -107,9 +128,9 @@ export class Bot {
      * 使用 Token 登录
      * ```
      * // 一种 Token 验证失败时的验证方式排序的实现
-     * Bot.loginByToken().catch(()=>{
-     *     Bot.loginByPassword(password).catch(()=>{
-     *         Bot.loginByQRCode().catch((e)=>{console.log(e)});
+     * Bot.loginByToken().catch(_=>{
+     *     Bot.loginByPassword(password).catch(_=>{
+     *         Bot.loginByQRCode().catch(e=>{console.log(e)});
      *     })
      * })
      * ```
@@ -137,7 +158,7 @@ export class Bot {
      */
     readonly login: (this: Bot, password?: Password) => Promise<void>;
 
-    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void {
+    register<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>, once: boolean = false): void {
         const that = this;
         function isEntryLegal(entry: EventEntry<Bot, T> | EventResponse<Bot, T>): entry is EventEntry<Bot, T> {
             return !!entry && !!response;
@@ -147,17 +168,25 @@ export class Bot {
         }
         // register(event_name, entry: EventEntry<Bot, typeof event_name>, response: EventResponse<Bot, typeof event_name>)
         if (isEntryLegal(entry) && isResponseLegal(response)) {
-            this.CLIENT.on(event_name, (...args: any) => {
+            var listner: (...args: any[]) => any;
+            once ? this.CLIENT.on(event_name, listner = (...args: any) => {
+                if (entry.call(that, ...args)) response.call(that, ...args), that.CLIENT.off(event_name, listner);
+            }) : this.CLIENT.on(event_name, (...args: any) => {
                 if (entry.call(that, ...args)) response.call(that, ...args);
             })
         } else {
             // register(event_name, response: EventResponse<Bot, typeof event_name>)
             const response: EventResponse<Bot, T> = entry;
-            this.CLIENT.on(event_name, (...args: any) => response.call(that, ...args));
+            once ? this.CLIENT.once(event_name, (...args: any) => response.call(that, ...args))
+                : this.CLIENT.on(event_name, (...args: any) => response.call(that, ...args));
         }
     }
 
-    registerMsg<T extends "message">(entry: MessageEntry<Bot> | MessageResponse<Bot>, response?: MessageResponse<Bot>): void {
+    once<T extends keyof EventMap<this>>(event_name: T, entry: EventEntry<Bot, T> | EventResponse<Bot, T>, response?: EventResponse<Bot, T>): void {
+        this.register<T>(event_name, entry, response, true);
+    }
+
+    registerMsg<T extends "message">(entry: MessageEntry<Bot> | MessageResponse<Bot>, response?: MessageResponse<Bot>, once: boolean = false): void {
         function isEntryLegal(entry: MessageEntry<Bot> | MessageResponse<Bot>): entry is MessageEntry<Bot> {
             return !!entry && !!response;
         }
@@ -182,11 +211,15 @@ export class Bot {
         }
         // entry_func
         if (isEntryLegal(entry) && isResponseLegal(response)) { // funtion(entry, response)
-            return this.register("message", genEntryFunc(entry), genResponseFunc(response));
+            return this.register("message", genEntryFunc(entry), genResponseFunc(response), once);
         } else { // function(response)
             response = entry;
-            return this.register("message", genResponseFunc(response));
+            return this.register("message", genResponseFunc(response), undefined, once);
         }
+    }
+
+    onceMsg<T extends "message">(entry: MessageEntry<Bot> | MessageResponse<Bot>, response?: MessageResponse<Bot>): void {
+        this.registerMsg<T>(entry, response, true);
     }
 
     /**
@@ -214,12 +247,30 @@ export class Bot {
         }
     }
 
+    /**
+     * 使用`AppHandler`|`Plugin`实例或函数实例
+     */
     use(instance: AppHandler<this> | ((app: Bot) => any)): Bot {
         function isAppHandler(instance: AppHandler<Bot> | ((app: Bot) => any)): instance is AppHandler<Bot> {
             return "apphandler" in instance;
         }
         if (isAppHandler(instance)) instance.apphandler(this);
         else instance(this);
+        return this;
+    }
+
+    /**
+     * 监听上线事件
+     */
+    online(callback: (this: Bot) => any): Bot {
+        this.CLIENT.on("system.online", () => callback.call(this));
+        return this;
+    }
+    /**
+     * 监听下线事件
+     */
+    offline(callback: (this: Bot) => any): Bot {
+        this.CLIENT.on("system.offline", () => callback.call(this));
         return this;
     }
 }
