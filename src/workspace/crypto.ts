@@ -48,7 +48,7 @@ export const rsa = {
         const buf: Buffer = crypto.privateDecrypt(pteKey, Buffer.from(str, "hex"));
         return buf.toString("utf8");
     },
-    decodeByPub: function (str: string, pubKey: crypto.RsaPrivateKey): string {
+    decodeByPub: function (str: string, pubKey: crypto.RsaPublicKey): string {
         const buf: Buffer = crypto.publicDecrypt(pubKey, Buffer.from(str, "hex"));
         return buf.toString("utf8");
     }
