@@ -1,5 +1,5 @@
 import "./workspace/colors";
-import * as oicq from "oicq";
+import * as oicq from "icqq";
 import { md5 } from "./workspace/crypto";
 import { login, loginByPassword, loginByQRCode, loginByToken } from "./bot/login";
 import { EventMap, EventEntry, EventResponse, MessageEntry, MessageResponse } from "./events";
@@ -112,8 +112,11 @@ export class Bot {
                 logged: false
             }
         }
+        // Ask and store ACCOUNT
+        account = Bot.ensureAccount(account);
+        this.ACCOUNT = parseInt(account.toString());
         // Generate CLIENT
-        this.CLIENT = Bot.createClient(account);
+        this.CLIENT = Bot.createClient(config);
         this.status.client.exist = true;
         // Add Event to CLIENT
         this.CLIENT.on("system.online", function () {
@@ -121,8 +124,6 @@ export class Bot {
         }).on("system.offline", function () {
             that.status.client.logged = false;
         });
-        // Store ACCOUNT
-        this.ACCOUNT = parseInt(account.toString());
         // Process the password
         const PASSWORD_MD5 = (function () {
             if (!password) return undefined;
@@ -187,7 +188,7 @@ export class Bot {
         if (isEntryLegal(entry) && isResponseLegal(response)) {
             var listner: (...args: any[]) => any;
             once ? this.CLIENT.on(event_name, listner = (...args: any) => {
-                if (entry.call(that, ...args)) response.call(that, ...args), that.CLIENT.off(event_name, listner);
+                if (entry.call(that, ...args)) response.call(that, ...args), that.CLIENT.off(event_name); // TODO: no listener?
             }) : this.CLIENT.on(event_name, (...args: any) => {
                 if (entry.call(that, ...args)) response.call(that, ...args);
             })
@@ -240,11 +241,11 @@ export class Bot {
     }
 
     /**
-     * 创建一个OICQ Client并返回，用于保存到`CLIENT`属性中
+     * 验证账号是否合法
      * @param account QQ acount to login
-     * @returns {oicq.Client}
+     * @returns {number}
      */
-    private static createClient(account: Account, config?: oicq.Config): oicq.Client {
+    private static ensureAccount(account: Account): number {
         const isAccountLegal = function (account: Account): boolean {
             if (Buffer.isBuffer(account)) return isAccountLegal(String(account));
             else if (typeof account == "number") return true;
@@ -258,10 +259,18 @@ export class Bot {
                 account = String(account);
             if (typeof account == "string")
                 account = parseInt(account);
-            return oicq.createClient(account, config);
+            return account
         } else {
             throw new Error("Account is illegal");
         }
+    }
+    /**
+     * 创建一个OICQ Client并返回，用于保存到`CLIENT`属性中
+     * @param account QQ acount to login
+     * @returns {oicq.Client}
+     */
+    private static createClient(config?: oicq.Config): oicq.Client {
+        return oicq.createClient(config);
     }
 
     /**

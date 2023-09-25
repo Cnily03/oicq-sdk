@@ -1,4 +1,4 @@
-import * as oicq from "oicq";
+import * as oicq from "icqq";
 
 // Copied and edited from oicq.segment.fromCqcode
 function unescapeCQ(s: string) {

@@ -1,9 +1,11 @@
 const osdk = require("../");
+const icqq= require("icqq");
+icqq.createClient().on()
 require("../lib/workspace/colors");
 
 // const CONFIG = require("./config");
-// const oicq = require("oicq");
-const reading = require("../lib/workspace/reading")
+// const oicq = require("icqq");
+const reading = require("../lib/workspace/reading").reading
 
 var Bot;
 // account

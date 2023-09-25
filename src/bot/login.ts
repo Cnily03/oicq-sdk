@@ -11,11 +11,12 @@ let __has_run = false;
 const __before = function (this: Bot): void {
     if (__has_run) return;
     __has_run = true;
+    const that = this.CLIENT;
     // Login by password
     this.CLIENT.on("system.login.slider", function (event) { //监听滑动验证码事件
         reading("请输入Ticket：".info).then((input: Buffer) => {
             const ticket: string = String(input).trim();
-            this.submitSlider(ticket);
+            that.submitSlider(ticket);
         })
     }).on("system.login.device", function (event) { // 监听登录保护验证事件
         console.log("若需要短信验证，请输入 " + "SMS".info + " 后回车");
@@ -25,7 +26,7 @@ const __before = function (this: Bot): void {
             const input = String(inputBuf).trim();
             if (input == "SMS") { // SMS: Use SMS to login
                 sms_enabled = true;
-                this.sendSmsCode();
+                that.sendSmsCode();
                 // wait for sending successfully
                 var psw = process.stdout.write;
                 process.stdout.write = (...args: any[]): boolean => {
@@ -46,12 +47,12 @@ const __before = function (this: Bot): void {
                     }
                 }
             } else if (sms_enabled && parseInt(input).toString() == input)
-                this.submitSmsCode(input); // Number: submit the SMS code
-            else this.login(); // Enter: Login after verifying
+                that.submitSmsCode(input); // Number: submit the SMS code
+            else that.login(); // Enter: Login after verifying
         })
     }).on("system.login.qrcode", async function (event) { // login by QR Code
         await reading("扫码完成并确认后回车".info)
-        this.login();
+        that.login();
     });
 }
 
@@ -78,7 +79,7 @@ export const loginByPassword: Bot["loginByPassword"] = async function (this: Bot
     var pwd_md5: Password;
     if (password.length == 32) pwd_md5 = password;
     else pwd_md5 = md5(password);
-    return this.CLIENT.login(pwd_md5); // Password or md5 crypted
+    return this.CLIENT.login(parseInt(this.ACCOUNT.toString()), pwd_md5); // Password or md5 crypted
 }
 
 /** 使用二维码登录，扫码完成后回车可尝试登录 */
@@ -90,5 +91,5 @@ export const loginByQRCode: Bot["loginByQRCode"] = async function (this: Bot) {
 /** 自动登录 */
 export const login: Bot["login"] = async function (this: Bot, password?: Password) {
     __before.call(this);
-    return this.CLIENT.login(password);
+    return this.CLIENT.login(parseInt(this.ACCOUNT.toString()), password);
 }

@@ -1,5 +1,5 @@
-import * as oicq from "oicq";
-import { NOOP } from "oicq/lib/common";
+import * as oicq from "icqq";
+import { NOOP } from "icqq/lib/common";
 import { Bot, DiscussID, GroupID, UserID } from "../bot";
 import { ActionThis, EventElem, EventMap, EventPool } from "../events";
 import { AppHandler } from "../interface/app-handler";

@@ -1,8 +1,8 @@
-import * as oicq from "oicq";
+import * as oicq from "icqq";
 import { Bot } from "./bot";
 
 /** 事件地图 */
-export interface EventMap<T = Bot> extends oicq.EventMap<T> {
+export interface EventMap<T = Bot> extends oicq.EventMap {
 };
 
 /** 事件入口函数 */

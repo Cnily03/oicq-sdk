@@ -1,6 +1,6 @@
 {
   "name": "oicq-sdk",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Offer SDK to build a QQ bot more easily based on `oicq`",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -31,6 +31,7 @@
   "license": "MPL-2.0",
   "dependencies": {
     "colors": "^1.4.0",
+    "icqq": "^0.5.4",
     "oicq": "^2.3.1"
   },
   "devDependencies": {
