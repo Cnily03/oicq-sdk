@@ -28,9 +28,10 @@ function getAccount(account) {
         }
     })
 }
-getAccount(2706109441).then(account => {
+getAccount(2709109441).then(account => {
     Bot = new osdk.Bot(account, {
-        platform: 3
+        platform: 2,
+        sign_api_addr: "https://qsign.jevon.wang/sign?key="
     });
 
     // Login

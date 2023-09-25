@@ -61,7 +61,7 @@ export const loginByToken: Bot["loginByToken"] = async function (this: Bot) {
     __before.call(this);
     // try loggin by token
     try {
-        const token: Buffer = await fs.promises.readFile(path.join(this.CLIENT.dir, "token"));
+        const token: Buffer = await fs.promises.readFile(path.join(this.CLIENT.dir, `${this.ACCOUNT}_token`));
         return this.CLIENT.tokenLogin(token);
     } catch (e) {
         return new Promise((_, reject) => { reject(e) });
