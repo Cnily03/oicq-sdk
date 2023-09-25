@@ -79,6 +79,12 @@ export interface Bot {
     onceMsg(response: MessageResponse<Bot>): void;
 }
 
+function is_oicq_config(config: any): config is oicq.Config {
+    if (typeof config != "object") return false;
+    if (Buffer.isBuffer(config)) return false;
+    return true;
+}
+
 /**
  * 一个QQ机器人
  */
@@ -92,8 +98,13 @@ export class Bot {
     /**
      * 一个QQ机器人
      */
-    constructor(account: Account, password?: Password) {
+    constructor(account: Account, config?: oicq.Config);
+    constructor(account: Account, password?: Password & oicq.Config, config?: oicq.Config) {
         const that = this;
+        if (is_oicq_config(password)) {
+            config = password;
+            password = undefined;
+        }
         // Default status
         this.status = {
             client: {
@@ -233,7 +244,7 @@ export class Bot {
      * @param account QQ acount to login
      * @returns {oicq.Client}
      */
-    private static createClient(account: Account): oicq.Client {
+    private static createClient(account: Account, config?: oicq.Config): oicq.Client {
         const isAccountLegal = function (account: Account): boolean {
             if (Buffer.isBuffer(account)) return isAccountLegal(String(account));
             else if (typeof account == "number") return true;
@@ -247,7 +258,7 @@ export class Bot {
                 account = String(account);
             if (typeof account == "string")
                 account = parseInt(account);
-            return oicq.createClient(account);
+            return oicq.createClient(account, config);
         } else {
             throw new Error("Account is illegal");
         }

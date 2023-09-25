@@ -26,8 +26,10 @@ function getAccount(account) {
         }
     })
 }
-getAccount(3136377562).then(account => {
-    Bot = new osdk.Bot(account);
+getAccount(2706109441).then(account => {
+    Bot = new osdk.Bot(account, {
+        platform: 3
+    });
 
     // Login
     const loginType = (function () {
