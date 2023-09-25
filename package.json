@@ -1,6 +1,6 @@
 {
   "name": "oicq-sdk",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "Offer SDK to build a QQ bot more easily based on `oicq`",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

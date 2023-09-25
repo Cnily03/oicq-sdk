@@ -61,7 +61,14 @@ export const loginByToken: Bot["loginByToken"] = async function (this: Bot) {
     __before.call(this);
     // try loggin by token
     try {
-        const token: Buffer = await fs.promises.readFile(path.join(this.CLIENT.dir, `${this.ACCOUNT}_token`));
+        if (typeof this.CLIENT.uin !== "number") this.CLIENT.uin = Number(this.ACCOUNT.toString())
+        let uin = this.CLIENT.uin;
+        if (!uin) throw new Error("No uin specified");
+        const token_path = path.join(this.CLIENT.dir, uin + "_token");
+        if (!fs.existsSync(token_path) && fs.existsSync(token_path + "_bak")) {
+            fs.renameSync(token_path + "_bak", token_path);
+        }
+        const token: Buffer = await fs.promises.readFile(token_path);
         return this.CLIENT.tokenLogin(token);
     } catch (e) {
         return new Promise((_, reject) => { reject(e) });
