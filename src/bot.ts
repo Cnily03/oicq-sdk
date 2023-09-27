@@ -118,6 +118,8 @@ export class Bot {
         // Generate CLIENT
         this.CLIENT = Bot.createClient(config);
         this.status.client.exist = true;
+        // Fix ICQQClient
+        Bot.fixICQQClient();
         // Add Event to CLIENT
         this.CLIENT.on("system.online", function () {
             that.status.client.logged = true;
@@ -186,17 +188,32 @@ export class Bot {
         }
         // register(event_name, entry: EventEntry<Bot, typeof event_name>, response: EventResponse<Bot, typeof event_name>)
         if (isEntryLegal(entry) && isResponseLegal(response)) {
-            var listner: (...args: any[]) => any;
+            let listner: (...args: any[]) => any;
             once ? this.CLIENT.on(event_name, listner = (...args: any) => {
-                if (entry.call(that, ...args)) response.call(that, ...args), that.CLIENT.off(event_name); // TODO: no listener?
-            }) : this.CLIENT.on(event_name, (...args: any) => {
-                if (entry.call(that, ...args)) response.call(that, ...args);
+                if (entry.call(that, ...args)) {
+                    try {
+                        that.CLIENT.off(event_name) // TODO: no listener provided?
+                        return response.call(that, ...args)
+                    } catch (e) { console.error(e) }
+                }
             })
+                : this.CLIENT.on(event_name, (...args: any) => {
+                    if (entry.call(that, ...args)) {
+                        try { return response.call(that, ...args) }
+                        catch (e) { console.error(e) }
+                    }
+                });
         } else {
             // register(event_name, response: EventResponse<Bot, typeof event_name>)
             const response: EventResponse<Bot, T> = entry;
-            once ? this.CLIENT.once(event_name, (...args: any) => response.call(that, ...args))
-                : this.CLIENT.on(event_name, (...args: any) => response.call(that, ...args));
+            once ? this.CLIENT.once(event_name, (...args: any) => {
+                try { return response.call(that, ...args) }
+                catch (e) { console.error(e) }
+            })
+                : this.CLIENT.on(event_name, (...args: any) => {
+                    try { return response.call(that, ...args) }
+                    catch (e) { console.error(e) }
+                });
         }
     }
 
@@ -222,7 +239,9 @@ export class Bot {
             if (typeof response != "function") { // response is Sendable
                 const _response: oicq.Sendable = response;
                 return function (event: Parameters<EventMap<Bot>[T]>[0]): void {
-                    event.reply(_response);
+                    try {
+                        event.reply(_response);
+                    } catch (e) { console.error(e) }
                 }
             }
             else return response; // response is Function
@@ -238,6 +257,79 @@ export class Bot {
 
     onceMsg<T extends "message">(entry: MessageEntry<Bot> | MessageResponse<Bot>, response?: MessageResponse<Bot>): void {
         this.registerMsg<T>(entry, response, true);
+    }
+
+    /**
+     * 是否已经修复 ICQQ Client
+     */
+    private static _icqq_client_fixed = false;
+    /**
+     * 修复 ICQQ Client 发送消息失败时退出的错误
+     */
+    private static fixICQQClient() {
+        if (Bot._icqq_client_fixed) return;
+        // 获取原来的 this
+        const ori_oicq_group_sendMsg = oicq.Group.prototype.sendMsg;
+        oicq.Group.prototype.sendMsg = async function (...args: Parameters<typeof oicq.Group.prototype.sendMsg>): ReturnType<typeof oicq.Group.prototype.sendMsg> {
+            return await ori_oicq_group_sendMsg.call(this, ...args).catch(e => {
+                console.error(e)
+                return {
+                    message_id: "",
+                    seq: 0,
+                    rand: 0,
+                    time: 0
+                }
+            })
+        }
+        const ori_oicq_discuss_sendMsg = oicq.Discuss.prototype.sendMsg;
+        oicq.Discuss.prototype.sendMsg = async function (...args: Parameters<typeof oicq.Discuss.prototype.sendMsg>): ReturnType<typeof oicq.Discuss.prototype.sendMsg> {
+            return await ori_oicq_discuss_sendMsg.call(this, ...args).catch(e => {
+                console.error(e)
+                return {
+                    message_id: "",
+                    seq: 0,
+                    rand: 0,
+                    time: 0
+                }
+            })
+        }
+        const ori_oicq_friend_sendMsg = oicq.Friend.prototype.sendMsg;
+        oicq.Friend.prototype.sendMsg = async function (...args: Parameters<typeof oicq.Friend.prototype.sendMsg>): ReturnType<typeof oicq.Friend.prototype.sendMsg> {
+            return await ori_oicq_friend_sendMsg.call(this, ...args).catch(e => {
+                console.error(e)
+                return {
+                    message_id: "",
+                    seq: 0,
+                    rand: 0,
+                    time: 0
+                }
+            })
+        }
+        const ori_oicq_channel_sendMsg = oicq.Channel.prototype.sendMsg;
+        oicq.Channel.prototype.sendMsg = async function (...args: Parameters<typeof oicq.Channel.prototype.sendMsg>): ReturnType<typeof oicq.Channel.prototype.sendMsg> {
+            return await ori_oicq_channel_sendMsg.call(this, ...args).catch(e => {
+                console.error(e)
+                return {
+                    message_id: "",
+                    seq: 0,
+                    rand: 0,
+                    time: 0
+                }
+            })
+        }
+        const ori_oicq_user_sendMsg = oicq.User.prototype.sendMsg;
+        oicq.User.prototype.sendMsg = async function (...args: Parameters<typeof oicq.User.prototype.sendMsg>): ReturnType<typeof oicq.User.prototype.sendMsg> {
+            return await ori_oicq_user_sendMsg.call(this, ...args).catch(e => {
+                console.error(e)
+                return {
+                    message_id: "",
+                    seq: 0,
+                    rand: 0,
+                    time: 0
+                }
+            })
+        }
+        Bot._icqq_client_fixed = true;
     }
 
     /**
